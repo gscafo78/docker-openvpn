@@ -32,7 +32,7 @@ Remember, without server.conf you can not generate the client file.
 
 ```shell
 # Make sure you replace `<your_path>` with your target folder, this is the path where files will be created.
-# To generate the Certification Authority, Server and Clinet certificate use Docker-openssl
+# To generate the Certification Authority, Server and Clinet certificate you can use Docker-openssl
 
 docker run --rm -v your_path:/opt -e GENERATE_SERVER=true \
                                   -e REDIRECT_GATEWAY=true \
