@@ -6,7 +6,7 @@ OpenVPN 2.5.1 built on May 14 2021, container to create Server and or Client VPN
 
 # Requirement
 
-Docker must be configured to run Linux Docker containers. If it's not the case already, right click on the Docker icon and then click on "Switch to Linux containers...".
+Docker must be configured to run Linux Docker containers. You need the certificates, you can use [Docker-openssl](https://github.com/gscafo78/docker-openssl)
 
 # Build Docker Image
 
@@ -27,11 +27,12 @@ For generating the configuration file, you can use the environmerts:
 * REDIRECT_GATEWAY (false default) if true, enable the server to push to clients "redirect-gateway def1 bypass-dhcp"
 * GENERATE_CLIENT
   
-Remember, without server.conf you do not generate the client file.
+Remember, without server.conf you can not generate the client file.
+[Docker-openssl](https://github.com/gscafo78/docker-openssl)
 
 ```shell
 # Make sure you replace `<your_path>` with your target folder, this is the path where files will be created.
-# To generate the Certification Authority, Server and Clinet certificate use Docker-openssl 
+# To generate the Certification Authority, Server and Clinet certificate use Docker-openssl
 
 docker run --rm -v your_path:/opt -e GENERATE_SERVER=true \
                                   -e REDIRECT_GATEWAY=true \
