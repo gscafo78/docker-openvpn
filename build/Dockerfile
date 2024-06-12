@@ -23,6 +23,7 @@ ENV RUN_SERVER=false
 ENV SERVER_PORT=1194
 ENV SERVER_PROTO=udp
 ENV REDIRECT_GATEWAY=false
+ENV FORWARD=false
 
 # Set the entry point
 ENTRYPOINT ["/entrypoint.sh"]

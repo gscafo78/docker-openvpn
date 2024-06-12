@@ -1,0 +1,17 @@
+services:
+  openvpn:
+    build: ./build
+    image: 4ss078/docker-openvpn:latest
+    environment:
+      - GENERATE_SERVER=true
+      - REDIRECT_GATEWAY=true
+      - GENERATE_CLIENT=true
+      - SERVER_PORT=1195
+      - SERVER_PROTO=tcp
+    volumes:
+      - openvpn_data:/opt
+    restart: "no"
+    tty: true
+
+volumes:
+  openvpn_data:

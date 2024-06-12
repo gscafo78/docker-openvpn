@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Exit immediately if any command exits with a non-zero status
@@ -37,6 +38,7 @@ is_valid_protocol() {
 # Add iptables rules
 update_iptables_forward() {
     local nic=$1
+    local port=$2
     # Enable IPv4 forwarding
     echo 1 > /proc/sys/net/ipv4/ip_forward
     echo "IPv4 forwarding enabled"
@@ -46,7 +48,11 @@ update_iptables_forward() {
         iptables -I INPUT 1 -i tun0 -j ACCEPT
         iptables -I FORWARD 1 -i "$nic" -o tun0 -j ACCEPT
         iptables -I FORWARD 1 -i tun0 -o "$nic" -j ACCEPT
-        iptables -I INPUT 1 -i "$nic" -p udp --dport 1194 -j ACCEPT
+        iptables -I INPUT 1 -i "$nic" -p udp --dport $port -j ACCEPT
+        if [ "${FORWARD}" = true ]; then
+            iptables -t nat -I PREROUTING 1 -p tcp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
+            iptables -t nat -I PREROUTING 1 -p udp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
+        fi
     else
         echo "Failed to obtain default gateway interface" >&2
     fi
@@ -55,12 +61,17 @@ update_iptables_forward() {
 # Cleanup iptables
 restore_iptables() {
     local nic=$1
+    local port=$2
     echo "Restoring iptables rules for $nic"
     iptables -t nat -D POSTROUTING -s 10.8.0.0/24 -o "$nic" -j MASQUERADE
     iptables -D INPUT -i tun0 -j ACCEPT
     iptables -D FORWARD -i "$nic" -o tun0 -j ACCEPT
     iptables -D FORWARD -i tun0 -o "$nic" -j ACCEPT
-    iptables -D INPUT -i "$nic" -p udp --dport 1194 -j ACCEPT
+    iptables -D INPUT -i "$nic" -p udp --dport $port -j ACCEPT
+    if [ "${FORWARD}" = true ]; then
+            iptables -t nat -D PREROUTING -p tcp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
+            iptables -t nat -D PREROUTING -p udp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
+        fi
     echo 0 > /proc/sys/net/ipv4/ip_forward
 }
 
@@ -150,7 +161,7 @@ fi
             check_and_create_folder "$cafolder"
             check_and_create_folder "$certsfolder"
             check_and_create_folder "$certsserver"
-            update_iptables_forward "$NIC"
+            update_iptables_forward "$NIC" "$SERVER_PORT"
             # Loop through and run openvpn for each .conf file
             for conf in /opt/openvpn/*.conf; do
                 /usr/sbin/openvpn --config "$conf" &
@@ -173,7 +184,7 @@ wait
 
 # Cleanup iptables rules on normal script exit
 if [ "${RUN_SERVER}" = "true" ]; then
-    restore_iptables "$NIC"
+    restore_iptables "$NIC" "$SERVER_PORT"
 fi
 
 # Start the application passed as arguments to the script

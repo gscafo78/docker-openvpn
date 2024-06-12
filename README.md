@@ -26,6 +26,7 @@ For generating the configuration file, you can use the environmerts:
 * SERVER_PROTO (TCP/UDP, UDP default)
 * REDIRECT_GATEWAY (false default) if true, enable the server to push to clients "redirect-gateway def1 bypass-dhcp"
 * GENERATE_CLIENT
+* FORWARD to forward inside the tunnel, ports from 1 to 64000
   
 Remember, without server.conf you can not generate the client file.
 [Docker-openssl](https://github.com/gscafo78/docker-openssl)
@@ -37,8 +38,6 @@ Remember, without server.conf you can not generate the client file.
 docker run --rm -v your_path:/opt -e GENERATE_SERVER=true \
                                   -e REDIRECT_GATEWAY=true \
                                   -e GENERATE_CLIENT=true \
-                                  -e SERVER_PORT=1195 \
-                                  -e SERVER_PROTO=tcp \
                                   4ss078/docker-openvpn:latest
 
 # After this command, you are going to have in your folder the client.conf, server.conf files
