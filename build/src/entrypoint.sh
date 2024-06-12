@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Exit immediately if any command exits with a non-zero status
@@ -26,6 +25,7 @@ is_valid_port() {
     fi
 }
 
+# Function to check if a string is a valid protocol
 is_valid_protocol() {
     local protocol=$(echo "$1" | tr '[:upper:]' '[:lower:]')
     if [[ "$protocol" == "tcp" || "$protocol" == "udp" ]]; then
@@ -33,6 +33,12 @@ is_valid_protocol() {
     else
         return 1  # False
     fi
+}
+
+get_port_number() {
+    local config_file="$1"
+    local port_number=$(grep -Po '^port\s+\K\d+' "$config_file")
+    echo "$port_number"
 }
 
 # Add iptables rules
@@ -71,9 +77,9 @@ restore_iptables() {
     iptables -D FORWARD -i tun0 -o "$nic" -j ACCEPT
     iptables -D INPUT -i "$nic" -p udp --dport $port -j ACCEPT
     if [ "${FORWARD}" = true ]; then
-            iptables -t nat -D PREROUTING -p tcp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
-            iptables -t nat -D PREROUTING -p udp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
-        fi
+        iptables -t nat -D PREROUTING -p tcp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
+        iptables -t nat -D PREROUTING -p udp -i $nic --dport 1:64000 -j DNAT --to-destination $dst:1-64000
+    fi
     echo 0 > /proc/sys/net/ipv4/ip_forward
 }
 
@@ -151,19 +157,20 @@ case "${GENERATE_CLIENT}" in
         ;;
 esac
 
-if [ "${GENERATE_SERVER}" = false ] && [ "${REDIRECT_GATEWAY}" = true]; then
+if [ "${GENERATE_SERVER}" = false ] && [ "${REDIRECT_GATEWAY}" = true ]; then
     echo "To enable redirect gateway you have to generate new server conf file. ex -e GENERATE_SERVER = true -e REDIRECT_GATEWAY = true"
     exit 0
 fi
 
-
-# if [ "${RUN_SERVER}" = true ] || [ "${RUN_CLIENT}" = true ]; then
+if [ "${RUN_SERVER}" = true ] || [ "${RUN_CLIENT}" = true ]; then
     if checkfileconf "conf"; then
         if [ "${RUN_SERVER}" = true ]; then
             check_and_create_folder "$cafolder"
             check_and_create_folder "$certsfolder"
             check_and_create_folder "$certsserver"
-            update_iptables_forward "$NIC" "$SERVER_PORT"
+            config_file="/opt/openvpn/server.conf"
+            vpnport=$(get_port_number "$config_file")
+            update_iptables_forward "$NIC" "$vpnport"
             # Loop through and run openvpn for each .conf file
             for conf in /opt/openvpn/*.conf; do
                 /usr/sbin/openvpn --config "$conf" &
@@ -179,14 +186,14 @@ fi
             done
         fi
     fi
-# fi
+fi
 
 # Wait for all background processes to finish
 wait
 
 # Cleanup iptables rules on normal script exit
 if [ "${RUN_SERVER}" = "true" ]; then
-    restore_iptables "$NIC" "$SERVER_PORT"
+    restore_iptables "$NIC" "$vpnport"
 fi
 
 # Start the application passed as arguments to the script

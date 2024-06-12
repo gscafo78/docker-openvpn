@@ -13,7 +13,7 @@ else
 	gateway=""
 fi
 
-config_content="port ${1}4
+config_content="port ${1}
 proto ${2}
 dev tun
 topology subnet
