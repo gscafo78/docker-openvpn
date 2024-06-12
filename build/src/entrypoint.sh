@@ -39,6 +39,7 @@ is_valid_protocol() {
 update_iptables_forward() {
     local nic=$1
     local port=$2
+    local dst=10.8.0.2    
     # Enable IPv4 forwarding
     echo 1 > /proc/sys/net/ipv4/ip_forward
     echo "IPv4 forwarding enabled"
@@ -62,6 +63,7 @@ update_iptables_forward() {
 restore_iptables() {
     local nic=$1
     local port=$2
+    local dst=10.8.0.2
     echo "Restoring iptables rules for $nic"
     iptables -t nat -D POSTROUTING -s 10.8.0.0/24 -o "$nic" -j MASQUERADE
     iptables -D INPUT -i tun0 -j ACCEPT
