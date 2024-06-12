@@ -21,11 +21,11 @@ docker build -t 4ss078/docker-openvpn:latest .
 
 # Generate OpenVPN configuration files
 For generating the configuration file, you can use the environmerts:
-* GENERATE_SERVER
+* GENERATE_SERVER (false default)
 * SERVER_PORT (1-65535, 1194 default)
 * SERVER_PROTO (TCP/UDP, UDP default)
 * REDIRECT_GATEWAY (false default) if true, enable the server to push to clients "redirect-gateway def1 bypass-dhcp"
-* GENERATE_CLIENT
+* GENERATE_CLIENT (false default)
 * FORWARD to forward inside the tunnel, ports from 1 to 64000
   
 Remember, without server.conf you can not generate the client file.
