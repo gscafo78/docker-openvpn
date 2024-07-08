@@ -168,11 +168,14 @@ if [ "${RUN_SERVER}" = true ] || [ "${RUN_CLIENT}" = true ]; then
             check_and_create_folder "$cafolder"
             check_and_create_folder "$certsfolder"
             check_and_create_folder "$certsserver"
-            config_file="/opt/openvpn/server.conf"
-            vpnport=$(get_port_number "$config_file")
-            update_iptables_forward "$NIC" "$vpnport"
+            # config_file="/opt/openvpn/server.conf"
+            # vpnport=$(get_port_number "$config_file")
+            # update_iptables_forward "$NIC" "$vpnport"
+
             # Loop through and run openvpn for each .conf file
             for conf in /opt/openvpn/*.conf; do
+                vpnport=$(get_port_number "$config_file")
+                update_iptables_forward "$NIC" "$vpnport"
                 /usr/sbin/openvpn --config "$conf" &
             done
         fi
